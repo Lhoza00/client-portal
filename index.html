@@ -1,0 +1,1619 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>Client Portal</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+/* ─── RESET ─────────────────────────────────────────────── */
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;scroll-behavior:smooth}
+body{
+  font-family:'DM Sans',sans-serif;
+  background:#ffffff;
+  color:#111;
+  min-height:100vh;
+  overflow-x:hidden;
+}
+
+/* ─── CSS ROOT (editable by client) ─────────────────────── */
+:root{
+  --primary:      #ff6b00;
+  --primary-dark: #cc5500;
+  --primary-pale: #fff3ec;
+  --secondary:    #111111;
+  --bg:           #ffffff;
+  --text:         #111111;
+  --border-radius:10px;
+
+  /* UI constants — not editable */
+  --surface:   #f8f8f8;
+  --surface2:  #f0f0f0;
+  --border:    #e8e8e8;
+  --border2:   #d4d4d4;
+  --muted:     #888888;
+  --green:     #16a34a;
+  --green-bg:  #f0fdf4;
+  --red:       #dc2626;
+  --red-bg:    #fef2f2;
+  --yellow:    #ca8a04;
+  --yellow-bg: #fefce8;
+  --shadow:    0 1px 4px rgba(0,0,0,0.07), 0 4px 16px rgba(0,0,0,0.05);
+  --shadow-md: 0 4px 12px rgba(0,0,0,0.10), 0 12px 32px rgba(0,0,0,0.07);
+}
+
+/* ─── HEADER ─────────────────────────────────────────────── */
+.header{
+  background:var(--secondary);
+  height:58px;
+  display:flex;align-items:center;
+  padding:0 24px;
+  position:sticky;top:0;z-index:200;
+  gap:0;
+}
+.header-logo{
+  display:flex;align-items:center;gap:9px;
+  font-size:.9rem;font-weight:700;color:#fff;
+  letter-spacing:.01em;margin-right:auto;
+  cursor:pointer;
+  white-space:nowrap;
+}
+.header-logo-dot{
+  width:26px;height:26px;border-radius:7px;
+  background:var(--primary);
+  display:flex;align-items:center;justify-content:center;
+  font-size:.75rem;font-weight:800;color:#fff;flex-shrink:0;
+}
+.header-nav{
+  display:flex;align-items:center;
+  background:rgba(255,255,255,0.08);
+  border-radius:8px;padding:3px;gap:2px;margin:0 16px;
+}
+.hnav-btn{
+  padding:6px 18px;border-radius:6px;
+  font-size:.75rem;font-weight:600;
+  cursor:pointer;border:none;
+  font-family:inherit;letter-spacing:.02em;
+  transition:all .2s;
+  background:transparent;color:rgba(255,255,255,0.55);
+}
+.hnav-btn.active{
+  background:#fff;color:var(--secondary);
+}
+.hnav-btn:not(.active):hover{color:#fff;}
+.save-btn{
+  display:flex;align-items:center;gap:7px;
+  padding:8px 20px;border-radius:8px;
+  background:var(--primary);color:#fff;
+  font-size:.75rem;font-weight:700;
+  border:none;cursor:pointer;font-family:inherit;
+  transition:all .2s;white-space:nowrap;
+  letter-spacing:.02em;
+}
+.save-btn:hover{background:var(--primary-dark);transform:translateY(-1px);}
+.save-btn:active{transform:translateY(0);}
+.save-btn .save-icon{font-size:.85rem;}
+
+/* ─── SUB-HEADER (editor only) ───────────────────────────── */
+.sub-header{
+  background:#fff;
+  border-bottom:1.5px solid var(--border);
+  padding:0 24px;
+  display:none;align-items:center;gap:4px;
+  position:sticky;top:58px;z-index:100;
+}
+.sub-header.visible{display:flex;}
+.sub-tab{
+  padding:14px 18px;
+  font-size:.78rem;font-weight:600;color:var(--muted);
+  background:transparent;border:none;cursor:pointer;
+  font-family:inherit;letter-spacing:.02em;
+  border-bottom:2.5px solid transparent;
+  margin-bottom:-1.5px;transition:all .2s;
+}
+.sub-tab:hover{color:var(--secondary);}
+.sub-tab.active{
+  color:var(--primary);
+  border-bottom-color:var(--primary);
+}
+
+/* ─── PAGES ─────────────────────────────────────────────── */
+.page{display:none;}
+.page.active{display:block;}
+.editor-panel{display:none;}
+.editor-panel.active{display:block;animation:fadeUp .25s ease;}
+
+/* ─── CONTENT WRAPPER ───────────────────────────────────── */
+.content{padding:28px 28px 60px;max-width:1280px;margin:0 auto;}
+
+/* ─── TYPOGRAPHY ────────────────────────────────────────── */
+.page-label{
+  font-size:.68rem;font-weight:700;letter-spacing:.14em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:6px;
+}
+.page-title{font-size:1.4rem;font-weight:700;color:var(--secondary);margin-bottom:2px;}
+.page-sub{font-size:.82rem;color:var(--muted);}
+.section-title{
+  font-size:.75rem;font-weight:700;letter-spacing:.1em;
+  text-transform:uppercase;color:var(--muted);
+  margin-bottom:14px;
+}
+
+/* ─── CARDS ─────────────────────────────────────────────── */
+.card{
+  background:#fff;border:1px solid var(--border);
+  border-radius:var(--border-radius);
+  box-shadow:var(--shadow);
+}
+.card-header{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:16px 18px;border-bottom:1px solid var(--border);
+}
+.card-title{font-size:.82rem;font-weight:700;color:var(--secondary);}
+.card-sub{font-size:.7rem;color:var(--muted);margin-top:1px;}
+.card-body{padding:18px;}
+
+/* ─── GRID LAYOUTS ───────────────────────────────────────── */
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px;}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-bottom:22px;}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:18px;margin-bottom:22px;}
+.g-auto{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:18px;}
+
+/* ─── STAT CARDS ─────────────────────────────────────────── */
+.stat{
+  background:#fff;border:1px solid var(--border);
+  border-radius:var(--border-radius);
+  padding:18px 18px 16px;
+  box-shadow:var(--shadow);
+  position:relative;overflow:hidden;
+  transition:transform .2s,box-shadow .2s;
+  animation:fadeUp .35s ease both;
+}
+.stat:hover{transform:translateY(-2px);box-shadow:var(--shadow-md);}
+.stat-accent{
+  position:absolute;top:0;left:0;right:0;height:3px;
+  border-radius:var(--border-radius) var(--border-radius) 0 0;
+}
+.stat-label{font-size:.68rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin-bottom:8px;}
+.stat-value{font-size:1.65rem;font-weight:700;color:var(--secondary);line-height:1;margin-bottom:7px;}
+.stat-badge{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:.68rem;font-weight:700;padding:3px 8px;border-radius:100px;
+}
+.badge-up{background:#f0fdf4;color:#16a34a;}
+.badge-warn{background:#fefce8;color:#ca8a04;}
+.badge-down{background:#fef2f2;color:#dc2626;}
+.stat-icon{
+  position:absolute;right:16px;top:50%;transform:translateY(-50%);
+  font-size:1.6rem;opacity:.12;
+}
+
+/* ─── CHART ─────────────────────────────────────────────── */
+.chart-wrap{padding:16px 16px 8px;}
+.chart-legend{display:flex;gap:14px;padding:0 16px 12px;flex-wrap:wrap;}
+.legend-dot{width:8px;height:8px;border-radius:50%;display:inline-block;margin-right:5px;vertical-align:middle;}
+.legend-label{font-size:.72rem;color:var(--muted);}
+.chart-svg{width:100%;display:block;overflow:visible;}
+
+/* ─── PRODUCTS TABLE ─────────────────────────────────────── */
+.tbl{width:100%;border-collapse:collapse;}
+.tbl th{
+  font-size:.65rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;
+  color:var(--muted);padding:10px 14px;text-align:left;
+  border-bottom:1px solid var(--border);white-space:nowrap;
+  background:var(--surface);
+}
+.tbl td{
+  padding:12px 14px;font-size:.8rem;color:#333;
+  border-bottom:1px solid var(--border);vertical-align:middle;
+}
+.tbl tr:last-child td{border-bottom:none;}
+.tbl tr:hover td{background:#fafafa;}
+.tbl-wrap{overflow-x:auto;border-radius:0 0 var(--border-radius) var(--border-radius);}
+
+/* product cell */
+.prod-cell{display:flex;align-items:center;gap:10px;}
+.prod-thumb{
+  width:34px;height:34px;border-radius:7px;
+  background:var(--surface2);display:flex;align-items:center;justify-content:center;
+  font-size:1rem;flex-shrink:0;
+}
+
+/* stock badge */
+.stock-pill{
+  display:inline-flex;align-items:center;gap:4px;
+  font-size:.67rem;font-weight:700;padding:3px 9px;border-radius:100px;
+  white-space:nowrap;
+}
+.sp-ok{background:#f0fdf4;color:#16a34a;}
+.sp-low{background:#fefce8;color:#ca8a04;}
+.sp-out{background:#fef2f2;color:#dc2626;}
+
+/* status badge */
+.status-pill{display:inline-flex;align-items:center;font-size:.67rem;font-weight:700;padding:3px 9px;border-radius:100px;}
+.s-paid{background:#f0fdf4;color:#16a34a;}
+.s-pending{background:#fefce8;color:#ca8a04;}
+.s-refund{background:#fef2f2;color:#dc2626;}
+
+/* action buttons */
+.act-row{display:flex;gap:6px;}
+.act-btn{
+  padding:5px 11px;border-radius:6px;font-size:.7rem;font-weight:600;
+  border:1px solid var(--border2);background:#fff;
+  cursor:pointer;font-family:inherit;transition:all .15s;
+  color:var(--secondary);
+}
+.act-btn:hover{border-color:var(--primary);color:var(--primary);}
+.act-btn.del:hover{border-color:var(--red);color:var(--red);}
+
+/* ─── STOCK HEALTH ───────────────────────────────────────── */
+.stock-row{
+  display:flex;align-items:center;gap:12px;
+  padding:11px 0;border-bottom:1px solid var(--border);
+}
+.stock-row:last-child{border:none;}
+.stock-name{flex:1;font-size:.8rem;font-weight:500;}
+.stock-bar-wrap{flex:2;height:5px;background:var(--surface2);border-radius:3px;}
+.stock-bar{height:5px;border-radius:3px;transition:width .8s ease;}
+.bar-ok{background:#16a34a;}
+.bar-low{background:#ca8a04;}
+.bar-out{background:#dc2626;}
+.stock-num{font-size:.78rem;font-weight:700;min-width:28px;text-align:right;}
+.num-ok{color:#16a34a;}
+.num-low{color:#ca8a04;}
+.num-out{color:#dc2626;}
+
+/* ─── BEST SELLERS ───────────────────────────────────────── */
+.bs-row{
+  display:flex;align-items:center;gap:12px;
+  padding:12px 0;border-bottom:1px solid var(--border);
+}
+.bs-row:last-child{border:none;}
+.bs-rank{
+  width:22px;height:22px;border-radius:6px;
+  background:var(--surface2);display:flex;align-items:center;justify-content:center;
+  font-size:.62rem;font-weight:800;color:var(--muted);flex-shrink:0;
+}
+.bs-rank.gold{background:#fef9c3;color:#854d0e;}
+.bs-thumb{width:38px;height:38px;border-radius:7px;background:var(--surface2);display:flex;align-items:center;justify-content:center;font-size:1.1rem;flex-shrink:0;}
+.bs-name{flex:1;font-size:.8rem;font-weight:600;color:var(--secondary);}
+.bs-cat{font-size:.68rem;color:var(--muted);margin-top:1px;}
+.bs-bar-wrap{height:3px;background:var(--surface2);border-radius:2px;margin-top:5px;}
+.bs-bar{height:3px;border-radius:2px;background:var(--primary);transition:width .8s ease;}
+.bs-right{text-align:right;flex-shrink:0;}
+.bs-sales{font-size:.82rem;font-weight:700;color:var(--secondary);}
+.bs-rev{font-size:.68rem;color:var(--green);margin-top:1px;}
+
+/* ─── DISCOUNT RECS ──────────────────────────────────────── */
+.disc-row{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:12px 0;border-bottom:1px solid var(--border);gap:12px;
+}
+.disc-row:last-child{border:none;}
+.disc-name{font-size:.8rem;font-weight:600;}
+.disc-meta{font-size:.68rem;color:var(--muted);margin-top:2px;}
+.disc-tag{
+  font-size:.7rem;font-weight:700;padding:4px 12px;border-radius:100px;
+  background:var(--primary-pale);color:var(--primary);
+  border:1px solid rgba(255,107,0,.15);white-space:nowrap;flex-shrink:0;
+}
+
+/* ─── EDITOR FORMS ───────────────────────────────────────── */
+.form-group{margin-bottom:16px;}
+.form-label{
+  display:block;font-size:.7rem;font-weight:700;letter-spacing:.08em;
+  text-transform:uppercase;color:var(--muted);margin-bottom:6px;
+}
+.form-input,.form-select,.form-textarea{
+  width:100%;padding:10px 13px;border-radius:8px;
+  border:1.5px solid var(--border2);background:#fff;
+  color:var(--secondary);font-size:.85rem;font-family:inherit;
+  outline:none;transition:border-color .2s,box-shadow .2s;
+}
+.form-input:focus,.form-select:focus,.form-textarea:focus{
+  border-color:var(--primary);
+  box-shadow:0 0 0 3px rgba(255,107,0,.1);
+}
+.form-textarea{resize:vertical;min-height:76px;line-height:1.5;}
+.form-select{appearance:none;background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%23888'/%3E%3C/svg%3E");background-repeat:no-repeat;background-position:right 12px center;padding-right:30px;}
+.form-row-2{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.color-row{display:flex;align-items:center;gap:10px;}
+.color-swatch{
+  width:38px;height:38px;border-radius:8px;flex-shrink:0;
+  border:1.5px solid var(--border2);cursor:pointer;
+  position:relative;overflow:hidden;
+}
+.color-swatch input[type="color"]{
+  opacity:0;position:absolute;inset:0;width:100%;height:100%;cursor:pointer;border:none;
+}
+.range-row{display:flex;align-items:center;gap:12px;}
+.range-row input[type="range"]{
+  flex:1;accent-color:var(--primary);cursor:pointer;height:4px;
+}
+.range-val{font-size:.8rem;font-weight:700;color:var(--primary);min-width:36px;font-family:'DM Mono',monospace;}
+
+/* color presets */
+.preset-grid{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px;}
+.preset-swatch{
+  width:32px;height:32px;border-radius:7px;cursor:pointer;
+  border:2px solid transparent;transition:all .18s;flex-shrink:0;
+}
+.preset-swatch:hover{transform:scale(1.1);}
+.preset-swatch.sel{border-color:var(--secondary);}
+
+/* font cards */
+.font-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px;}
+.font-card{
+  padding:12px 14px;border-radius:8px;border:1.5px solid var(--border);
+  cursor:pointer;transition:all .2s;
+}
+.font-card:hover{border-color:var(--border2);}
+.font-card.sel{border-color:var(--primary);background:var(--primary-pale);}
+.font-card-name{font-size:.65rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;color:var(--muted);margin-bottom:3px;}
+.font-card-sample{font-size:1rem;color:var(--secondary);}
+
+/* section toggles */
+.section-block{
+  display:flex;align-items:center;gap:14px;
+  padding:13px 0;border-bottom:1px solid var(--border);
+}
+.section-block:last-child{border:none;}
+.section-info{flex:1;}
+.section-name{font-size:.82rem;font-weight:600;}
+.section-desc{font-size:.7rem;color:var(--muted);margin-top:2px;}
+.toggle{position:relative;width:40px;height:22px;flex-shrink:0;}
+.toggle input{opacity:0;position:absolute;width:0;height:0;}
+.toggle-track{
+  position:absolute;inset:0;border-radius:100px;
+  background:var(--surface2);border:1.5px solid var(--border2);
+  transition:all .25s;cursor:pointer;
+}
+.toggle input:checked+.toggle-track{background:var(--primary);border-color:var(--primary);}
+.toggle-thumb{
+  position:absolute;top:2px;left:2px;width:16px;height:16px;
+  border-radius:50%;background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.2);
+  transition:transform .25s;pointer-events:none;
+}
+.toggle input:checked~.toggle-thumb{transform:translateX(18px);}
+
+/* image upload */
+.img-upload{
+  border:2px dashed var(--border2);border-radius:10px;
+  padding:24px;text-align:center;cursor:pointer;
+  transition:all .2s;position:relative;overflow:hidden;
+}
+.img-upload:hover{border-color:var(--primary);background:var(--primary-pale);}
+.img-upload input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%;}
+.img-upload-icon{font-size:1.6rem;margin-bottom:6px;}
+.img-upload p{font-size:.78rem;color:var(--muted);}
+.img-upload span{color:var(--primary);font-weight:600;}
+
+/* emoji picker */
+.emoji-grid{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:10px;}
+.emoji-btn{
+  width:36px;height:36px;border-radius:7px;font-size:1.1rem;
+  border:1.5px solid var(--border);background:#fff;cursor:pointer;
+  transition:all .15s;display:flex;align-items:center;justify-content:center;
+}
+.emoji-btn:hover{border-color:var(--primary);transform:scale(1.08);}
+.emoji-btn.sel{border-color:var(--primary);background:var(--primary-pale);}
+
+/* theme preview */
+.theme-preview{
+  border:1px solid var(--border);border-radius:10px;overflow:hidden;
+  margin-top:12px;
+}
+.tp-bar{height:38px;display:flex;align-items:center;padding:0 14px;gap:8px;font-size:.78rem;font-weight:700;}
+.tp-body{padding:16px;background:var(--surface);}
+.tp-hero{padding:20px;border-radius:8px;text-align:center;margin-bottom:10px;}
+.tp-hero-title{font-size:.95rem;font-weight:800;margin-bottom:3px;}
+.tp-hero-sub{font-size:.7rem;opacity:.75;}
+.tp-cards{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;}
+.tp-card{padding:10px 12px;border-radius:6px;font-size:.65rem;font-weight:700;text-align:center;}
+
+/* ─── MODAL ─────────────────────────────────────────────── */
+.modal-bg{
+  position:fixed;inset:0;background:rgba(0,0,0,.45);
+  z-index:500;display:none;align-items:center;justify-content:center;
+  padding:20px;backdrop-filter:blur(4px);
+}
+.modal-bg.open{display:flex;}
+.modal{
+  background:#fff;border-radius:14px;width:100%;max-width:500px;
+  max-height:90vh;overflow-y:auto;
+  box-shadow:0 8px 40px rgba(0,0,0,.18);
+  animation:modalIn .25s ease;
+}
+@keyframes modalIn{from{opacity:0;transform:translateY(14px)}to{opacity:1;transform:none}}
+.modal-head{
+  display:flex;align-items:center;justify-content:space-between;
+  padding:18px 20px;border-bottom:1px solid var(--border);
+  position:sticky;top:0;background:#fff;z-index:10;
+}
+.modal-title{font-size:.9rem;font-weight:700;}
+.modal-x{
+  width:28px;height:28px;border-radius:6px;
+  background:var(--surface2);border:none;cursor:pointer;
+  font-size:1rem;display:flex;align-items:center;justify-content:center;
+  color:var(--muted);transition:all .15s;
+}
+.modal-x:hover{background:var(--border2);color:var(--secondary);}
+.modal-body{padding:20px;}
+.modal-footer{
+  padding:14px 20px;border-top:1px solid var(--border);
+  display:flex;gap:10px;justify-content:flex-end;
+}
+.btn{
+  display:inline-flex;align-items:center;gap:6px;
+  padding:9px 18px;border-radius:8px;font-size:.78rem;font-weight:700;
+  border:1.5px solid transparent;cursor:pointer;font-family:inherit;
+  transition:all .18s;letter-spacing:.02em;
+}
+.btn-solid{background:var(--secondary);color:#fff;}
+.btn-solid:hover{background:#333;}
+.btn-ghost{background:#fff;color:var(--secondary);border-color:var(--border2);}
+.btn-ghost:hover{border-color:var(--secondary);}
+.btn-danger{background:#fef2f2;color:var(--red);border-color:rgba(220,38,38,.2);}
+.btn-danger:hover{background:var(--red);color:#fff;}
+.btn-primary-c{background:var(--primary);color:#fff;}
+.btn-primary-c:hover{background:var(--primary-dark);}
+
+/* ─── TOAST ─────────────────────────────────────────────── */
+.toast{
+  position:fixed;bottom:24px;right:24px;
+  background:var(--secondary);color:#fff;
+  padding:12px 18px;border-radius:10px;
+  font-size:.8rem;font-weight:600;
+  box-shadow:var(--shadow-md);z-index:9999;
+  display:flex;align-items:center;gap:8px;
+  transform:translateY(70px);opacity:0;
+  transition:all .3s cubic-bezier(.4,0,.2,1);
+  border-left:3px solid var(--primary);
+  pointer-events:none;
+}
+.toast.show{transform:translateY(0);opacity:1;}
+
+/* ─── ANIMATIONS ─────────────────────────────────────────── */
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:none}}
+.stat:nth-child(1){animation-delay:.04s}
+.stat:nth-child(2){animation-delay:.08s}
+.stat:nth-child(3){animation-delay:.12s}
+.stat:nth-child(4){animation-delay:.16s}
+
+/* ─── RESPONSIVE ─────────────────────────────────────────── */
+@media(max-width:1024px){
+  .g4{grid-template-columns:repeat(2,1fr);}
+  .g3{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:768px){
+  .g2,.g3{grid-template-columns:1fr;}
+  .g4{grid-template-columns:1fr 1fr;}
+  .form-row-2{grid-template-columns:1fr;}
+  .content{padding:18px 16px 48px;}
+  .header{padding:0 16px;}
+  .sub-header{padding:0 16px;}
+  .hnav-btn{padding:6px 12px;font-size:.7rem;}
+  .save-btn{padding:7px 14px;font-size:.7rem;}
+  .tp-cards{grid-template-columns:1fr 1fr;}
+}
+@media(max-width:520px){
+  .g4{grid-template-columns:1fr 1fr;}
+  .header-logo span{display:none;}
+  .font-grid{grid-template-columns:1fr;}
+  .stat-value{font-size:1.3rem;}
+  .sub-tab{padding:12px 12px;font-size:.72rem;}
+}
+@media(max-width:400px){
+  .g4{grid-template-columns:1fr;}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════════════════════════════════════════
+     HEADER
+══════════════════════════════════════════════════════════ -->
+<header class="header">
+  <div class="header-logo" onclick="showPage('dashboard')">
+    <div class="header-logo-dot">C</div>
+    <span id="headerStoreName">Client Portal</span>
+  </div>
+
+  <div class="header-nav">
+    <button class="hnav-btn active" id="navDash" onclick="showPage('dashboard')">Dashboard</button>
+    <button class="hnav-btn" id="navEdit" onclick="showPage('editor')">Store Editor</button>
+  </div>
+
+  <button class="save-btn" onclick="saveAll()">
+    <span class="save-icon">💾</span> Save All
+  </button>
+</header>
+
+<!-- Sub-header (editor only) -->
+<div class="sub-header" id="subHeader">
+  <button class="sub-tab active" id="stab-products"  onclick="switchPanel('products')">Products</button>
+  <button class="sub-tab"       id="stab-theme"      onclick="switchPanel('theme')">Theme &amp; Colors</button>
+  <button class="sub-tab"       id="stab-branding"   onclick="switchPanel('branding')">Branding</button>
+  <button class="sub-tab"       id="stab-homepage"   onclick="switchPanel('homepage')">Homepage</button>
+</div>
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE — DASHBOARD
+══════════════════════════════════════════════════════════ -->
+<div id="page-dashboard" class="page active">
+<div class="content">
+
+  <div style="margin-bottom:22px;">
+    <div class="page-label">Analytics</div>
+    <div class="page-title" id="dashTitle">Dashboard</div>
+    <div class="page-sub" id="dashDate"></div>
+  </div>
+
+  <!-- STAT CARDS -->
+  <div class="g4" id="statGrid"></div>
+
+  <!-- CHART + BEST SELLERS -->
+  <div class="g2" style="margin-bottom:22px;">
+    <div class="card">
+      <div class="card-header">
+        <div>
+          <div class="card-title">Revenue Chart</div>
+          <div class="card-sub">Last 7 months</div>
+        </div>
+        <select id="chartPeriod" class="form-select" style="width:auto;padding:6px 28px 6px 10px;font-size:.72rem;" onchange="renderChart()">
+          <option value="7">7 months</option>
+          <option value="12">12 months</option>
+        </select>
+      </div>
+      <div class="chart-legend">
+        <span><span class="legend-dot" style="background:var(--primary)"></span><span class="legend-label">Revenue</span></span>
+        <span><span class="legend-dot" style="background:#16a34a"></span><span class="legend-label">Profit</span></span>
+      </div>
+      <div class="chart-wrap" id="chartWrap"></div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div><div class="card-title">Best Sellers</div><div class="card-sub">By units sold</div></div>
+        <button class="act-btn" onclick="showPage('editor');switchPanel('products')">Manage →</button>
+      </div>
+      <div style="padding:0 16px;" id="bestSellers"></div>
+    </div>
+  </div>
+
+  <!-- ORDERS + STOCK + DISCOUNTS -->
+  <div class="g2" style="margin-bottom:0;">
+    <div class="card">
+      <div class="card-header">
+        <div><div class="card-title">Recent Orders</div><div class="card-sub" id="orderCountLabel">—</div></div>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Order ID</th>
+              <th>Product</th>
+              <th>Customer</th>
+              <th>Status</th>
+              <th>Amount</th>
+            </tr>
+          </thead>
+          <tbody id="ordersBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:18px;">
+
+      <!-- STOCK HEALTH -->
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">Stock Health</div><div class="card-sub" id="stockHealthLabel">—</div></div>
+          <button class="act-btn" onclick="showPage('editor');switchPanel('products')">Manage →</button>
+        </div>
+        <div style="padding:0 16px 4px;" id="stockHealth"></div>
+      </div>
+
+      <!-- DISCOUNT RECS -->
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">💡 Discount Suggestions</div><div class="card-sub">Views vs sales algorithm</div></div>
+        </div>
+        <div style="padding:0 16px 4px;" id="discountRecs"></div>
+      </div>
+
+    </div>
+  </div>
+
+</div>
+</div><!-- /dashboard -->
+
+<!-- ══════════════════════════════════════════════════════════
+     PAGE — EDITOR
+══════════════════════════════════════════════════════════ -->
+<div id="page-editor" class="page">
+
+  <!-- ── PANEL: PRODUCTS ── -->
+  <div id="panel-products" class="editor-panel active">
+  <div class="content">
+
+    <div style="display:flex;align-items:flex-end;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:12px;">
+      <div>
+        <div class="page-label">Store Editor</div>
+        <div class="page-title">Products</div>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;">
+        <div style="display:flex;align-items:center;gap:8px;background:var(--surface);border:1px solid var(--border);border-radius:8px;padding:8px 13px;">
+          <span style="font-size:.85rem;color:var(--muted);">🔍</span>
+          <input type="text" id="searchInput" placeholder="Search products…" oninput="filterProducts()"
+            style="border:none;background:none;outline:none;font-size:.82rem;font-family:inherit;color:var(--secondary);width:180px;"/>
+        </div>
+        <select class="form-select" id="catFilter" onchange="filterProducts()" style="width:auto;padding:9px 28px 9px 12px;">
+          <option value="">All categories</option>
+          <option>Shoes</option><option>Clothing</option><option>Electronics</option>
+          <option>Accessories</option><option>Bags</option>
+        </select>
+        <select class="form-select" id="stockFilter" onchange="filterProducts()" style="width:auto;padding:9px 28px 9px 12px;">
+          <option value="">All stock</option>
+          <option value="ok">In stock</option>
+          <option value="low">Low stock</option>
+          <option value="out">Out of stock</option>
+        </select>
+        <button class="btn btn-primary-c" onclick="openAddProduct()">＋ Add Product</button>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-header">
+        <div class="card-title">All Products</div>
+        <span style="font-size:.72rem;color:var(--muted);" id="prodCount">—</span>
+      </div>
+      <div class="tbl-wrap">
+        <table class="tbl">
+          <thead>
+            <tr>
+              <th>Product</th><th>Category</th><th>Price</th>
+              <th>Cost</th><th>Stock</th><th>Sales</th><th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="prodTableBody"></tbody>
+        </table>
+      </div>
+    </div>
+
+  </div>
+  </div>
+
+  <!-- ── PANEL: THEME & COLORS ── -->
+  <div id="panel-theme" class="editor-panel">
+  <div class="content">
+    <div style="margin-bottom:20px;">
+      <div class="page-label">Store Editor</div>
+      <div class="page-title">Theme &amp; Colors</div>
+    </div>
+
+    <div class="g2">
+      <!-- Left: Controls -->
+      <div style="display:flex;flex-direction:column;gap:18px;">
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">🎨 CSS :root Variables</div></div>
+          <div class="card-body">
+            <div class="form-group">
+              <div class="form-label">Quick presets</div>
+              <div class="preset-grid" id="presetGrid"></div>
+            </div>
+            <div class="form-group">
+              <div class="form-label">--primary-color</div>
+              <div class="color-row">
+                <div class="color-swatch" id="sw-primary"><input type="color" id="cp-primary" oninput="applyColor('primary',this.value)"/></div>
+                <input class="form-input" id="ct-primary" placeholder="#ff6b00" oninput="applyColorText('primary',this.value)"/>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="form-label">--secondary-color</div>
+              <div class="color-row">
+                <div class="color-swatch" id="sw-secondary"><input type="color" id="cp-secondary" oninput="applyColor('secondary',this.value)"/></div>
+                <input class="form-input" id="ct-secondary" placeholder="#111111" oninput="applyColorText('secondary',this.value)"/>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="form-label">--background-color</div>
+              <div class="color-row">
+                <div class="color-swatch" id="sw-bg"><input type="color" id="cp-bg" oninput="applyColor('bg',this.value)"/></div>
+                <input class="form-input" id="ct-bg" placeholder="#ffffff" oninput="applyColorText('bg',this.value)"/>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="form-label">--text-color</div>
+              <div class="color-row">
+                <div class="color-swatch" id="sw-text"><input type="color" id="cp-text" oninput="applyColor('text',this.value)"/></div>
+                <input class="form-input" id="ct-text" placeholder="#111111" oninput="applyColorText('text',this.value)"/>
+              </div>
+            </div>
+            <div class="form-group">
+              <div class="form-label">--border-radius</div>
+              <div class="range-row">
+                <input type="range" min="0" max="24" value="10" id="radiusSlider" oninput="applyRadius(this.value)" step="1"/>
+                <span class="range-val" id="radiusVal">10px</span>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="card">
+          <div class="card-header"><div class="card-title">🔤 Font</div></div>
+          <div class="card-body">
+            <div class="font-grid" id="fontGrid"></div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- Right: Preview -->
+      <div class="card" style="height:fit-content;position:sticky;top:120px;">
+        <div class="card-header"><div class="card-title">👁 Live Preview</div></div>
+        <div class="card-body">
+          <p style="font-size:.75rem;color:var(--muted);margin-bottom:10px;">Real-time preview of your store colors.</p>
+          <div class="theme-preview">
+            <div class="tp-bar" id="tp-bar">
+              <span>⚡</span><span id="tp-name">My Store</span>
+            </div>
+            <div class="tp-body" id="tp-body">
+              <div class="tp-hero" id="tp-hero">
+                <div class="tp-hero-title" id="tp-htitle">Welcome to Our Store</div>
+                <div class="tp-hero-sub">Discover amazing products</div>
+              </div>
+              <div class="tp-cards">
+                <div class="tp-card" id="tp-c1">Product A<br/>R 499</div>
+                <div class="tp-card" id="tp-c2">Product B<br/>R 799</div>
+                <div class="tp-card" id="tp-c3">Product C<br/>R 299</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- ── PANEL: BRANDING ── -->
+  <div id="panel-branding" class="editor-panel">
+  <div class="content">
+    <div style="margin-bottom:20px;">
+      <div class="page-label">Store Editor</div>
+      <div class="page-title">Branding</div>
+    </div>
+    <div class="g2">
+      <div style="display:flex;flex-direction:column;gap:18px;">
+        <div class="card">
+          <div class="card-header"><div class="card-title">🏷 Store Identity</div></div>
+          <div class="card-body">
+            <div class="form-group"><label class="form-label">Store Name</label><input class="form-input" id="b-name" placeholder="My Store"/></div>
+            <div class="form-group"><label class="form-label">Tagline</label><input class="form-input" id="b-tagline" placeholder="Quality at great prices"/></div>
+            <div class="form-group"><label class="form-label">Description</label><textarea class="form-textarea" id="b-desc" placeholder="Tell customers about your store…"></textarea></div>
+            <div class="form-row-2">
+              <div class="form-group"><label class="form-label">Email</label><input class="form-input" id="b-email" type="email" placeholder="store@email.com"/></div>
+              <div class="form-group"><label class="form-label">Phone</label><input class="form-input" id="b-phone" placeholder="+27 82 000 0000"/></div>
+            </div>
+            <button class="btn btn-primary-c" style="width:100%;justify-content:center;" onclick="saveBranding()">Save Identity</button>
+          </div>
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:18px;">
+        <div class="card">
+          <div class="card-header"><div class="card-title">🌅 Hero Banner</div></div>
+          <div class="card-body">
+            <div class="form-group"><label class="form-label">Hero Title</label><input class="form-input" id="b-hero-title" placeholder="Welcome to Our Store" oninput="updatePreviewText()"/></div>
+            <div class="form-group"><label class="form-label">Hero Subtitle</label><input class="form-input" id="b-hero-sub" placeholder="Discover amazing products"/></div>
+            <div class="form-group"><label class="form-label">CTA Button Text</label><input class="form-input" id="b-cta" placeholder="Shop Now"/></div>
+            <div class="form-group">
+              <label class="form-label">Hero Banner Image</label>
+              <div class="img-upload" id="heroUpload">
+                <input type="file" accept="image/*" onchange="handleHeroImg(event)"/>
+                <div class="img-upload-icon">🖼</div>
+                <p>Click or drag · <span>Upload banner</span></p>
+                <p style="margin-top:4px;font-size:.68rem;">Recommended: 1440 × 600 px</p>
+              </div>
+              <div id="heroImgPreview"></div>
+            </div>
+            <button class="btn btn-primary-c" style="width:100%;justify-content:center;" onclick="saveBranding()">Save Banner</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+  <!-- ── PANEL: HOMEPAGE ── -->
+  <div id="panel-homepage" class="editor-panel">
+  <div class="content">
+    <div style="margin-bottom:20px;">
+      <div class="page-label">Store Editor</div>
+      <div class="page-title">Homepage Sections</div>
+    </div>
+    <div class="g2">
+      <div class="card">
+        <div class="card-header">
+          <div><div class="card-title">📋 Section Visibility</div><div class="card-sub">Toggle what shows on your homepage</div></div>
+        </div>
+        <div style="padding:0 16px 4px;" id="sectionToggles"></div>
+        <div style="padding:14px 16px;">
+          <button class="btn btn-primary-c btn" style="width:100%;justify-content:center;" onclick="saveSections()">Save Visibility</button>
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-header"><div class="card-title">✏️ Section Content</div></div>
+        <div class="card-body">
+          <div class="form-group"><label class="form-label">Featured Products Title</label><input class="form-input" id="hp-feat-title" placeholder="Our Best Products"/></div>
+          <div class="form-group"><label class="form-label">Featured Products Subtitle</label><input class="form-input" id="hp-feat-sub" placeholder="Handpicked for you"/></div>
+          <div class="form-group"><label class="form-label">About Section Title</label><input class="form-input" id="hp-about-title" placeholder="About Us"/></div>
+          <div class="form-group"><label class="form-label">About Section Text</label><textarea class="form-textarea" id="hp-about-text" placeholder="Your story…"></textarea></div>
+          <div class="form-group"><label class="form-label">Footer Text</label><input class="form-input" id="hp-footer" placeholder="© 2025 My Store"/></div>
+          <button class="btn btn-primary-c" style="width:100%;justify-content:center;" onclick="saveHomepage()">Save Content</button>
+        </div>
+      </div>
+    </div>
+  </div>
+  </div>
+
+</div><!-- /editor -->
+
+<!-- ══════════════════════════════════════════════════════════
+     PRODUCT MODAL
+══════════════════════════════════════════════════════════ -->
+<div class="modal-bg" id="productModal">
+  <div class="modal">
+    <div class="modal-head">
+      <div class="modal-title" id="modalHeading">Add Product</div>
+      <button class="modal-x" onclick="closeProductModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <input type="hidden" id="edit-id"/>
+      <div class="form-row-2">
+        <div class="form-group"><label class="form-label">Name *</label><input class="form-input" id="p-name" placeholder="Air Max Sneakers"/></div>
+        <div class="form-group"><label class="form-label">Category</label>
+          <select class="form-select" id="p-cat">
+            <option>Shoes</option><option>Clothing</option><option>Electronics</option><option>Accessories</option><option>Bags</option><option>Other</option>
+          </select>
+        </div>
+        <div class="form-group"><label class="form-label">Price (R) *</label><input class="form-input" id="p-price" type="number" min="0" placeholder="499"/></div>
+        <div class="form-group"><label class="form-label">Cost Price (R)</label><input class="form-input" id="p-cost" type="number" min="0" placeholder="200"/></div>
+        <div class="form-group"><label class="form-label">Stock Qty</label><input class="form-input" id="p-stock" type="number" min="0" placeholder="10"/></div>
+        <div class="form-group"><label class="form-label">Sales (units)</label><input class="form-input" id="p-sales" type="number" min="0" placeholder="0"/></div>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Product Icon</label>
+        <div class="emoji-grid" id="emojiPicker"></div>
+        <input class="form-input" id="p-icon" placeholder="Or type an emoji"/>
+      </div>
+      <div class="form-group">
+        <label class="form-label">Product Image</label>
+        <div class="img-upload">
+          <input type="file" accept="image/*" onchange="handleProductImg(event)"/>
+          <div class="img-upload-icon">📸</div>
+          <p><span>Upload image</span> or drag &amp; drop</p>
+        </div>
+        <div id="prodImgPreview" style="margin-top:8px;"></div>
+      </div>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeProductModal()">Cancel</button>
+      <button class="btn btn-primary-c" onclick="saveProduct()">Save Product</button>
+    </div>
+  </div>
+</div>
+
+<!-- Delete confirm -->
+<div class="modal-bg" id="deleteModal">
+  <div class="modal" style="max-width:360px;">
+    <div class="modal-head">
+      <div class="modal-title" style="color:var(--red);">Delete Product</div>
+      <button class="modal-x" onclick="closeDeleteModal()">✕</button>
+    </div>
+    <div class="modal-body">
+      <p style="font-size:.85rem;color:#444;line-height:1.6;">Are you sure you want to delete <strong id="deleteNameLabel" style="color:var(--secondary)"></strong>? This cannot be undone.</p>
+    </div>
+    <div class="modal-footer">
+      <button class="btn btn-ghost" onclick="closeDeleteModal()">Cancel</button>
+      <button class="btn btn-danger" onclick="confirmDelete()">Delete</button>
+    </div>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- ══════════════════════════════════════════════════════════
+     JAVASCRIPT
+══════════════════════════════════════════════════════════ -->
+<script>
+/* ═══════════════════════════════════════════════════
+   DEFAULT DATA
+═══════════════════════════════════════════════════ */
+const DEFAULTS = {
+  settings:{
+    websiteName:"My Store",
+    tagline:"Quality at great prices",
+    description:"",
+    email:"",
+    phone:"",
+    primaryColor:"#ff6b00",
+    secondaryColor:"#111111",
+    backgroundColor:"#ffffff",
+    textColor:"#111111",
+    font:"DM Sans",
+    borderRadius:"10px",
+    heroTitle:"Welcome to Our Store",
+    heroSubtitle:"Discover amazing products",
+    heroCta:"Shop Now",
+    featTitle:"Our Best Products",
+    featSub:"Handpicked for you",
+    aboutTitle:"About Us",
+    aboutText:"",
+    footerText:"© 2025 My Store. All rights reserved.",
+  },
+  products:[
+    {id:1,title:"Air Max Sneakers",    price:1499,cost:700, stock:24,category:"Shoes",      sales:87, views:340,image:"👟"},
+    {id:2,title:"Leather Jacket",      price:2999,cost:1400,stock:5, category:"Clothing",   sales:43, views:210,image:"🧥"},
+    {id:3,title:"Wireless Headphones", price:899, cost:300, stock:2, category:"Electronics",sales:112,views:520,image:"🎧"},
+    {id:4,title:"Gold Watch",          price:4999,cost:2000,stock:8, category:"Accessories",sales:29, views:180,image:"⌚"},
+    {id:5,title:"Running Shorts",      price:349, cost:100, stock:0, category:"Clothing",   sales:65, views:95, image:"🩳"},
+    {id:6,title:"Backpack Pro",        price:799, cost:280, stock:15,category:"Bags",       sales:54, views:230,image:"🎒"},
+  ],
+  orders:[
+    {id:"#001",product:"Air Max Sneakers",   customer:"Sipho M.",  status:"paid",   amount:1499},
+    {id:"#002",product:"Leather Jacket",     customer:"Zanele K.", status:"pending",amount:2999},
+    {id:"#003",product:"Wireless Headphones",customer:"David T.",  status:"paid",   amount:899},
+    {id:"#004",product:"Gold Watch",         customer:"Nomsa P.",  status:"refund", amount:4999},
+    {id:"#005",product:"Backpack Pro",       customer:"Lebo S.",   status:"paid",   amount:799},
+  ],
+  history:[
+    {m:"Nov",rev:38200,cost:16000},{m:"Dec",rev:52400,cost:22000},
+    {m:"Jan",rev:31800,cost:14000},{m:"Feb",rev:47600,cost:20000},
+    {m:"Mar",rev:61200,cost:26000},{m:"Apr",rev:55800,cost:23000},
+    {m:"May",rev:72400,cost:30000},{m:"Jun",rev:68900,cost:28000},
+    {m:"Jul",rev:80200,cost:33000},{m:"Aug",rev:74500,cost:31000},
+    {m:"Sep",rev:88100,cost:36000},{m:"Oct",rev:93600,cost:39000},
+  ],
+  sections:[
+    {id:"hero",     name:"Hero Banner",       desc:"Top banner with title & CTA",     on:true},
+    {id:"featured", name:"Featured Products", desc:"Grid of highlighted products",    on:true},
+    {id:"about",    name:"About Us",          desc:"Brand story",                     on:true},
+    {id:"reviews",  name:"Customer Reviews",  desc:"Testimonials",                    on:false},
+    {id:"newsletter",name:"Newsletter",       desc:"Email capture",                   on:true},
+    {id:"footer",   name:"Footer",            desc:"Links, socials, copyright",       on:true},
+  ]
+};
+
+/* ═══════════════════════════════════════════════════
+   DATA LAYER — localStorage
+═══════════════════════════════════════════════════ */
+function loadData(){
+  try{
+    const raw = localStorage.getItem('cms_portal');
+    if(!raw) throw 0;
+    const d = JSON.parse(raw);
+    if(!d.sections) d.sections = DEFAULTS.sections;
+    return d;
+  }catch(e){
+    const d = JSON.parse(JSON.stringify(DEFAULTS));
+    localStorage.setItem('cms_portal', JSON.stringify(d));
+    return d;
+  }
+}
+function saveData(){
+  localStorage.setItem('cms_portal', JSON.stringify(DATA));
+  console.log('[Portal] Data saved');
+}
+let DATA = loadData();
+
+/* ═══════════════════════════════════════════════════
+   ALGORITHMS
+═══════════════════════════════════════════════════ */
+// 1. Total Revenue
+function calcRevenue(p){ return p.reduce((s,x)=>s+x.price*x.sales,0); }
+// 2. Product Costs
+function calcCosts(p){ return p.reduce((s,x)=>s+x.cost*x.sales,0); }
+// 3. Profit = revenue - costs
+function calcProfit(p){ return calcRevenue(p)-calcCosts(p); }
+// 4. Low stock: stock <= 5
+function getLowStock(p){ return p.filter(x=>x.stock<=5); }
+// 5. Best sellers: sort by sales desc
+function getBestSellers(p,n=5){ return [...p].sort((a,b)=>b.sales-a.sales).slice(0,n); }
+// 6. Discount rec: if views > sales, recommend 10%
+function getDiscountRecs(p){ return p.filter(x=>x.views>x.sales).map(x=>({...x,pct:x.views>x.sales*5?20:10})); }
+// 7. Stock health status
+function stockStatus(s){ return s===0?'OUT':s<=5?'LOW':'OK'; }
+// 8. Chart data slice
+function chartSlice(h,n){ return h.slice(-n).map(d=>({...d,profit:d.rev-d.cost})); }
+
+/* ═══════════════════════════════════════════════════
+   PAGE & PANEL NAVIGATION
+═══════════════════════════════════════════════════ */
+function showPage(p){
+  document.querySelectorAll('.page').forEach(x=>x.classList.remove('active'));
+  document.getElementById('page-'+p).classList.add('active');
+  document.getElementById('navDash').classList.toggle('active',p==='dashboard');
+  document.getElementById('navEdit').classList.toggle('active',p==='editor');
+  document.getElementById('subHeader').classList.toggle('visible',p==='editor');
+  window.scrollTo({top:0,behavior:'smooth'});
+  if(p==='dashboard') renderDashboard();
+  if(p==='editor') renderProductsTable();
+  console.log('[Nav] →',p);
+}
+function switchPanel(id){
+  document.querySelectorAll('.editor-panel').forEach(x=>x.classList.remove('active'));
+  document.querySelectorAll('.sub-tab').forEach(x=>x.classList.remove('active'));
+  document.getElementById('panel-'+id).classList.add('active');
+  document.getElementById('stab-'+id).classList.add('active');
+  if(id==='products') renderProductsTable();
+  console.log('[Panel] →',id);
+}
+
+/* ═══════════════════════════════════════════════════
+   DASHBOARD RENDER
+═══════════════════════════════════════════════════ */
+function renderDashboard(){
+  const p = DATA.products;
+  const rev  = calcRevenue(p);
+  const prof = calcProfit(p);
+  const low  = getLowStock(p);
+
+  // Date
+  document.getElementById('dashDate').textContent =
+    new Date().toLocaleDateString('en-ZA',{weekday:'long',day:'numeric',month:'long',year:'numeric'});
+  document.getElementById('dashTitle').textContent = 'Dashboard — ' + DATA.settings.websiteName;
+
+  // Stats
+  const stats = [
+    {label:'Total Revenue', value:'R '+rev.toLocaleString(),     badge:'▲ +12.4%', bcls:'badge-up',   icon:'💰', accent:DATA.settings.primaryColor},
+    {label:'Net Profit',    value:'R '+prof.toLocaleString(),    badge:'▲ +5.6%',  bcls:'badge-up',   icon:'📈', accent:'#16a34a'},
+    {label:'Total Orders',  value:DATA.orders.length,            badge:'▲ +8.1%',  bcls:'badge-up',   icon:'🛒', accent:'#0ea5e9'},
+    {label:'Low Stock',     value:low.length+' items',           badge:low.length>0?'⚠ Attention':'✓ Healthy', bcls:low.length>0?'badge-warn':'badge-up', icon:'📦', accent:low.length>0?'#ca8a04':'#16a34a'},
+  ];
+  document.getElementById('statGrid').innerHTML = stats.map(s=>`
+    <div class="stat">
+      <div class="stat-accent" style="background:${s.accent}"></div>
+      <div class="stat-label">${s.label}</div>
+      <div class="stat-value">${s.value}</div>
+      <span class="stat-badge ${s.bcls}">${s.badge}</span>
+      <div class="stat-icon">${s.icon}</div>
+    </div>`).join('');
+
+  renderChart();
+  renderBestSellers();
+  renderOrders();
+  renderStockHealth();
+  renderDiscounts();
+  console.log('[Dashboard] Revenue:',rev,'| Profit:',prof,'| Low stock:',low.length);
+}
+
+/* ─── CHART ─────────────────────────────────────── */
+function renderChart(){
+  const n = parseInt(document.getElementById('chartPeriod').value)||7;
+  const data = chartSlice(DATA.history, n);
+  const W=580, H=190, PL=52, PR=12, PT=10, PB=30;
+  const cW=W-PL-PR, cH=H-PT-PB;
+  const maxRev = Math.max(...data.map(d=>d.rev));
+  const sX = i => PL + i*(cW/(data.length-1));
+  const sY = v => PT+cH - (v/maxRev)*cH;
+
+  const gridLines = [0,.25,.5,.75,1].map(t=>{
+    const y=PT+cH*(1-t), val=Math.round(maxRev*t/1000);
+    return `<line x1="${PL}" y1="${y}" x2="${PL+cW}" y2="${y}" stroke="#e8e8e8" stroke-width="1"/>
+            <text x="${PL-6}" y="${y+4}" fill="#888" font-size="9" text-anchor="end" font-family="DM Mono,monospace">R${val}k</text>`;
+  }).join('');
+
+  const revPts = data.map((d,i)=>`${sX(i)},${sY(d.rev)}`).join(' ');
+  const profPts= data.map((d,i)=>`${sX(i)},${sY(d.profit)}`).join(' ');
+  const area = `${PL},${PT+cH} ${data.map((d,i)=>`${sX(i)},${sY(d.rev)}`).join(' ')} ${sX(data.length-1)},${PT+cH}`;
+  const labels = data.map((d,i)=>`<text x="${sX(i)}" y="${H-5}" fill="#888" font-size="9" text-anchor="middle" font-family="DM Sans,sans-serif">${d.m}</text>`).join('');
+  const dots = data.map((d,i)=>`<circle cx="${sX(i)}" cy="${sY(d.rev)}" r="3.5" fill="${DATA.settings.primaryColor||'#ff6b00'}" stroke="#fff" stroke-width="1.5"/>`).join('');
+
+  document.getElementById('chartWrap').innerHTML = `
+    <svg class="chart-svg" viewBox="0 0 ${W} ${H}" height="${H}">
+      ${gridLines}
+      <polygon points="${area}" fill="${DATA.settings.primaryColor||'#ff6b00'}" opacity=".08"/>
+      <polyline points="${revPts}" fill="none" stroke="${DATA.settings.primaryColor||'#ff6b00'}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/>
+      <polyline points="${profPts}" fill="none" stroke="#16a34a" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" stroke-dasharray="4 2"/>
+      ${labels}${dots}
+    </svg>`;
+}
+
+/* ─── BEST SELLERS ──────────────────────────────── */
+function renderBestSellers(){
+  const list = getBestSellers(DATA.products,5);
+  const max = list[0].sales;
+  document.getElementById('bestSellers').innerHTML = list.map((p,i)=>`
+    <div class="bs-row">
+      <div class="bs-rank ${i===0?'gold':''}">${i===0?'🥇':i+1}</div>
+      <div class="bs-thumb">${p.image}</div>
+      <div style="flex:1;min-width:0;">
+        <div class="bs-name">${p.title}</div>
+        <div class="bs-cat">${p.category}</div>
+        <div class="bs-bar-wrap"><div class="bs-bar" style="width:${Math.round(p.sales/max*100)}%"></div></div>
+      </div>
+      <div class="bs-right">
+        <div class="bs-sales">${p.sales} sold</div>
+        <div class="bs-rev">R ${(p.price*p.sales).toLocaleString()}</div>
+      </div>
+    </div>`).join('');
+}
+
+/* ─── ORDERS ─────────────────────────────────────── */
+function renderOrders(){
+  const map = {paid:['s-paid','Paid'],pending:['s-pending','Pending'],refund:['s-refund','Refunded']};
+  document.getElementById('orderCountLabel').textContent = DATA.orders.length+' orders total';
+  document.getElementById('ordersBody').innerHTML = DATA.orders.map(o=>{
+    const [cls,lbl]=map[o.status]||['s-pending','Unknown'];
+    return `<tr>
+      <td style="font-weight:700;font-size:.75rem">${o.id}</td>
+      <td>${o.product}</td><td>${o.customer}</td>
+      <td><span class="status-pill ${cls}">${lbl}</span></td>
+      <td style="font-weight:700">R ${o.amount.toLocaleString()}</td>
+    </tr>`;
+  }).join('');
+}
+
+/* ─── STOCK HEALTH ───────────────────────────────── */
+function renderStockHealth(){
+  const sorted = [...DATA.products].sort((a,b)=>a.stock-b.stock).slice(0,6);
+  const max = Math.max(...DATA.products.map(p=>p.stock),1);
+  const low = getLowStock(DATA.products);
+  document.getElementById('stockHealthLabel').textContent = low.length>0?`⚠ ${low.length} item(s) need attention`:'✅ All stock healthy';
+  document.getElementById('stockHealth').innerHTML = sorted.map(p=>{
+    const st=stockStatus(p.stock);
+    const [nc,bc,pc]= st==='OUT'?['num-out','bar-out','sp-out']:st==='LOW'?['num-low','bar-low','sp-low']:['num-ok','bar-ok','sp-ok'];
+    return `<div class="stock-row">
+      <span style="font-size:1rem">${p.image}</span>
+      <span class="stock-name">${p.title}</span>
+      <div class="stock-bar-wrap"><div class="stock-bar ${bc}" style="width:${Math.round(p.stock/max*100)}%"></div></div>
+      <span class="stock-num ${nc}">${p.stock}</span>
+      <span class="stock-pill ${pc}">${st}</span>
+    </div>`;
+  }).join('');
+}
+
+/* ─── DISCOUNTS ──────────────────────────────────── */
+function renderDiscounts(){
+  const recs = getDiscountRecs(DATA.products);
+  if(!recs.length){
+    document.getElementById('discountRecs').innerHTML='<p style="padding:16px 0;font-size:.8rem;color:var(--muted)">✅ No discount recommendations right now.</p>';
+    return;
+  }
+  document.getElementById('discountRecs').innerHTML = recs.map(p=>`
+    <div class="disc-row">
+      <div>
+        <div class="disc-name">${p.image} ${p.title}</div>
+        <div class="disc-meta">${p.views} views · ${p.sales} sales · ratio ${Math.round(p.views/Math.max(p.sales,1))}:1</div>
+      </div>
+      <span class="disc-tag">Suggest ${p.pct}% off</span>
+    </div>`).join('');
+}
+
+/* ═══════════════════════════════════════════════════
+   PRODUCTS TABLE
+═══════════════════════════════════════════════════ */
+function filterProducts(){
+  const q=(document.getElementById('searchInput').value||'').toLowerCase();
+  const cat=document.getElementById('catFilter').value;
+  const sf=document.getElementById('stockFilter').value;
+  let list=[...DATA.products];
+  if(q) list=list.filter(p=>p.title.toLowerCase().includes(q)||p.category.toLowerCase().includes(q));
+  if(cat) list=list.filter(p=>p.category===cat);
+  if(sf==='ok') list=list.filter(p=>p.stock>5);
+  if(sf==='low') list=list.filter(p=>p.stock>0&&p.stock<=5);
+  if(sf==='out') list=list.filter(p=>p.stock===0);
+  renderProductsTable(list);
+}
+
+function renderProductsTable(list){
+  list = list||DATA.products;
+  document.getElementById('prodCount').textContent=list.length+' product'+(list.length!==1?'s':'');
+  if(!list.length){
+    document.getElementById('prodTableBody').innerHTML=`<tr><td colspan="7" style="text-align:center;padding:36px;color:var(--muted)">No products found. Add your first one!</td></tr>`;
+    return;
+  }
+  document.getElementById('prodTableBody').innerHTML = list.map(p=>{
+    const st=stockStatus(p.stock);
+    const [pc]= st==='OUT'?['sp-out']:st==='LOW'?['sp-low']:['sp-ok'];
+    return `<tr>
+      <td><div class="prod-cell"><div class="prod-thumb">${p.image}</div><div><div style="font-weight:600;color:var(--secondary)">${p.title}</div><div style="font-size:.68rem;color:var(--muted)">ID:${p.id}</div></div></div></td>
+      <td>${p.category}</td>
+      <td style="font-weight:700">R ${p.price.toLocaleString()}</td>
+      <td style="color:var(--muted)">R ${p.cost.toLocaleString()}</td>
+      <td>
+        <div style="display:flex;align-items:center;gap:6px;">
+          <button class="act-btn" style="padding:4px 9px;" onclick="adjStock(${p.id},-1)">−</button>
+          <span class="stock-pill ${pc}">${p.stock} · ${st}</span>
+          <button class="act-btn" style="padding:4px 9px;" onclick="adjStock(${p.id},1)">+</button>
+        </div>
+      </td>
+      <td>${p.sales}</td>
+      <td><div class="act-row">
+        <button class="act-btn" onclick="openEditProduct(${p.id})">Edit</button>
+        <button class="act-btn del" onclick="openDeleteModal(${p.id})">Delete</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function adjStock(id,d){
+  const p=DATA.products.find(x=>x.id===id);
+  if(!p)return;
+  p.stock=Math.max(0,p.stock+d);
+  saveData();filterProducts();
+  showToast(`📦 ${p.title}: ${p.stock} in stock`);
+  console.log('[Stock]',p.title,'→',p.stock);
+}
+
+/* ─── PRODUCT MODAL ──────────────────────────────── */
+const EMOJIS=['👟','🧥','🎧','⌚','🩳','🎒','👗','👔','🕶','💼','👠','🧣','🧤','💍','📱','💻','🛍','🎸','☂','🏋'];
+
+function openAddProduct(){
+  document.getElementById('modalHeading').textContent='Add Product';
+  document.getElementById('edit-id').value='';
+  ['p-name','p-price','p-cost'].forEach(id=>document.getElementById(id).value='');
+  document.getElementById('p-cat').value='Shoes';
+  document.getElementById('p-stock').value='10';
+  document.getElementById('p-sales').value='0';
+  document.getElementById('p-icon').value='📦';
+  document.getElementById('prodImgPreview').innerHTML='';
+  renderEmojiPicker('📦');
+  document.getElementById('productModal').classList.add('open');
+}
+function openEditProduct(id){
+  const p=DATA.products.find(x=>x.id===id); if(!p)return;
+  document.getElementById('modalHeading').textContent='Edit Product';
+  document.getElementById('edit-id').value=id;
+  document.getElementById('p-name').value=p.title;
+  document.getElementById('p-cat').value=p.category;
+  document.getElementById('p-price').value=p.price;
+  document.getElementById('p-cost').value=p.cost;
+  document.getElementById('p-stock').value=p.stock;
+  document.getElementById('p-sales').value=p.sales;
+  document.getElementById('p-icon').value=p.image;
+  document.getElementById('prodImgPreview').innerHTML='';
+  renderEmojiPicker(p.image);
+  document.getElementById('productModal').classList.add('open');
+  console.log('[Modal] Edit product',id);
+}
+function closeProductModal(){ document.getElementById('productModal').classList.remove('open'); }
+
+function renderEmojiPicker(sel){
+  document.getElementById('emojiPicker').innerHTML=EMOJIS.map(e=>`
+    <button class="emoji-btn ${e===sel?'sel':''}" onclick="pickEmoji('${e}')" type="button">${e}</button>`).join('');
+}
+function pickEmoji(e){ document.getElementById('p-icon').value=e; renderEmojiPicker(e); }
+
+function handleProductImg(ev){
+  const file=ev.target.files[0]; if(!file)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    document.getElementById('prodImgPreview').innerHTML=`
+      <div style="margin-top:8px;border-radius:8px;overflow:hidden;height:80px;border:1px solid var(--border);">
+        <img src="${r.result}" style="width:100%;height:100%;object-fit:cover;"/></div>`;
+  };
+  r.readAsDataURL(file);
+}
+
+function saveProduct(){
+  const name=document.getElementById('p-name').value.trim();
+  const price=parseFloat(document.getElementById('p-price').value)||0;
+  if(!name){showToast('⚠ Product name required');return;}
+  if(!price){showToast('⚠ Price required');return;}
+  const payload={
+    title:name,
+    category:document.getElementById('p-cat').value,
+    price,
+    cost:parseFloat(document.getElementById('p-cost').value)||0,
+    stock:parseInt(document.getElementById('p-stock').value)||0,
+    sales:parseInt(document.getElementById('p-sales').value)||0,
+    views:Math.round((parseInt(document.getElementById('p-sales').value)||0)*3.5),
+    image:document.getElementById('p-icon').value||'📦',
+  };
+  const editId=document.getElementById('edit-id').value;
+  if(editId){
+    const idx=DATA.products.findIndex(x=>x.id==editId);
+    if(idx>-1) DATA.products[idx]={...DATA.products[idx],...payload};
+    showToast('✅ "'+name+'" updated');
+    console.log('[Product] Edited:',editId);
+  }else{
+    const newId=Math.max(0,...DATA.products.map(x=>x.id))+1;
+    DATA.products.push({id:newId,...payload});
+    showToast('✅ "'+name+'" added');
+    console.log('[Product] Added:',newId);
+  }
+  saveData();closeProductModal();filterProducts();
+}
+
+/* ─── DELETE ─────────────────────────────────────── */
+let _deleteId=null;
+function openDeleteModal(id){
+  _deleteId=id;
+  const p=DATA.products.find(x=>x.id===id);
+  document.getElementById('deleteNameLabel').textContent=p?p.title:'this product';
+  document.getElementById('deleteModal').classList.add('open');
+}
+function closeDeleteModal(){ document.getElementById('deleteModal').classList.remove('open');_deleteId=null; }
+function confirmDelete(){
+  if(!_deleteId)return;
+  const p=DATA.products.find(x=>x.id===_deleteId);
+  DATA.products=DATA.products.filter(x=>x.id!==_deleteId);
+  saveData();closeDeleteModal();filterProducts();
+  showToast('🗑 "'+p?.title+'" deleted');
+  console.log('[Product] Deleted:',_deleteId);
+}
+
+/* ═══════════════════════════════════════════════════
+   THEME & COLORS
+═══════════════════════════════════════════════════ */
+const PRESETS=[
+  {name:'Orange',  p:'#ff6b00',s:'#111111'},
+  {name:'Ocean',   p:'#0ea5e9',s:'#0c4a6e'},
+  {name:'Emerald', p:'#10b981',s:'#064e3b'},
+  {name:'Rose',    p:'#f43f5e',s:'#881337'},
+  {name:'Amber',   p:'#f59e0b',s:'#78350f'},
+  {name:'Purple',  p:'#8b5cf6',s:'#2e1065'},
+  {name:'Teal',    p:'#14b8a6',s:'#134e4a'},
+  {name:'Crimson', p:'#dc2626',s:'#1c0101'},
+  {name:'Lime',    p:'#84cc16',s:'#1a2e05'},
+  {name:'Slate',   p:'#64748b',s:'#0f172a'},
+  {name:'Pink',    p:'#ec4899',s:'#500724'},
+  {name:'Cyan',    p:'#06b6d4',s:'#083344'},
+];
+const FONTS=[
+  {name:'DM Sans',    sample:'The quick brown fox'},
+  {name:'Poppins',    sample:'Bold and friendly'},
+  {name:'Syne',       sample:'Geometric precision'},
+  {name:'Playfair Display',sample:'Elegant editorial'},
+  {name:'Manrope',    sample:'Friendly & readable'},
+  {name:'DM Mono',    sample:'Monospace clarity'},
+];
+
+function renderPresets(){
+  document.getElementById('presetGrid').innerHTML=PRESETS.map(c=>`
+    <div class="preset-swatch ${DATA.settings.primaryColor===c.p?'sel':''}"
+      style="background:${c.p}" title="${c.name}" onclick="applyPreset('${c.p}','${c.s}')"></div>`).join('');
+}
+
+function applyPreset(p,s){
+  DATA.settings.primaryColor=p; DATA.settings.secondaryColor=s;
+  setColorInput('primary',p); setColorInput('secondary',s);
+  applyAllColors(); renderPresets();
+  console.log('[Colors] Preset:',p,s);
+}
+
+function setColorInput(key,val){
+  document.getElementById('sw-'+key).style.background=val;
+  const cp=document.getElementById('cp-'+key); if(cp) cp.value=val;
+  const ct=document.getElementById('ct-'+key); if(ct) ct.value=val;
+}
+
+function applyColor(key,val){
+  const map={primary:'primaryColor',secondary:'secondaryColor',bg:'backgroundColor',text:'textColor'};
+  DATA.settings[map[key]]=val;
+  document.getElementById('sw-'+key).style.background=val;
+  const ct=document.getElementById('ct-'+key); if(ct) ct.value=val;
+  applyAllColors();
+}
+function applyColorText(key,val){
+  if(/^#[0-9a-fA-F]{6}$/.test(val)){
+    applyColor(key,val);
+    const cp=document.getElementById('cp-'+key); if(cp) cp.value=val;
+  }
+}
+function applyRadius(v){
+  DATA.settings.borderRadius=v+'px';
+  document.getElementById('radiusVal').textContent=v+'px';
+  document.documentElement.style.setProperty('--border-radius',v+'px');
+}
+
+function applyAllColors(){
+  const s=DATA.settings;
+  document.documentElement.style.setProperty('--primary',s.primaryColor||'#ff6b00');
+  document.documentElement.style.setProperty('--secondary',s.secondaryColor||'#111');
+  updateThemePreview();
+}
+
+function updateThemePreview(){
+  const s=DATA.settings;
+  const p=s.primaryColor||'#ff6b00', sec=s.secondaryColor||'#111';
+  document.getElementById('tp-bar').style.background=sec;
+  document.getElementById('tp-bar').style.color='#fff';
+  document.getElementById('tp-name').textContent=s.websiteName||'My Store';
+  document.getElementById('tp-htitle').textContent=s.heroTitle||'Welcome to Our Store';
+  document.getElementById('tp-hero').style.background=`linear-gradient(135deg,${p},${sec})`;
+  document.getElementById('tp-hero').style.color='#fff';
+  [1,2,3].forEach(i=>{
+    const c=document.getElementById('tp-c'+i);
+    if(!c)return;
+    c.style.background='rgba(0,0,0,0.05)';c.style.color=sec;
+  });
+}
+
+function updatePreviewText(){
+  const t=document.getElementById('b-hero-title'); if(t&&document.getElementById('tp-htitle')) document.getElementById('tp-htitle').textContent=t.value||'Welcome to Our Store';
+  const n=document.getElementById('b-name'); if(n&&document.getElementById('tp-name')) document.getElementById('tp-name').textContent=n.value||'My Store';
+}
+
+function renderFontGrid(){
+  document.getElementById('fontGrid').innerHTML=FONTS.map(f=>`
+    <div class="font-card ${DATA.settings.font===f.name?'sel':''}" onclick="pickFont('${f.name}')">
+      <div class="font-card-name">${f.name}</div>
+      <div class="font-card-sample" style="font-family:'${f.name}',sans-serif">${f.sample}</div>
+    </div>`).join('');
+}
+function pickFont(name){
+  DATA.settings.font=name;
+  if(!document.querySelector(`link[data-font="${name}"]`)){
+    const l=document.createElement('link');
+    l.rel='stylesheet';l.dataset.font=name;
+    l.href=`https://fonts.googleapis.com/css2?family=${name.replace(/ /g,'+')}:wght@400;500;600;700&display=swap`;
+    document.head.appendChild(l);
+  }
+  document.body.style.fontFamily=`'${name}',sans-serif`;
+  renderFontGrid();saveData();showToast('🔤 Font: '+name);
+}
+
+/* ═══════════════════════════════════════════════════
+   BRANDING
+═══════════════════════════════════════════════════ */
+function loadBranding(){
+  const s=DATA.settings;
+  document.getElementById('b-name').value=s.websiteName||'';
+  document.getElementById('b-tagline').value=s.tagline||'';
+  document.getElementById('b-desc').value=s.description||'';
+  document.getElementById('b-email').value=s.email||'';
+  document.getElementById('b-phone').value=s.phone||'';
+  document.getElementById('b-hero-title').value=s.heroTitle||'';
+  document.getElementById('b-hero-sub').value=s.heroSubtitle||'';
+  document.getElementById('b-cta').value=s.heroCta||'';
+}
+function saveBranding(){
+  DATA.settings.websiteName  = document.getElementById('b-name').value.trim()||'My Store';
+  DATA.settings.tagline      = document.getElementById('b-tagline').value;
+  DATA.settings.description  = document.getElementById('b-desc').value;
+  DATA.settings.email        = document.getElementById('b-email').value;
+  DATA.settings.phone        = document.getElementById('b-phone').value;
+  DATA.settings.heroTitle    = document.getElementById('b-hero-title').value;
+  DATA.settings.heroSubtitle = document.getElementById('b-hero-sub').value;
+  DATA.settings.heroCta      = document.getElementById('b-cta').value;
+  saveData();updateThemePreview();updateHeaderName();showToast('✅ Branding saved!');
+  console.log('[Branding] Saved');
+}
+function handleHeroImg(ev){
+  const file=ev.target.files[0]; if(!file)return;
+  const r=new FileReader();
+  r.onload=()=>{
+    document.getElementById('heroImgPreview').innerHTML=`
+      <div style="margin-top:8px;border-radius:8px;overflow:hidden;height:100px;">
+        <img src="${r.result}" style="width:100%;height:100%;object-fit:cover;"/></div>
+      <p style="font-size:.7rem;color:var(--green);margin-top:4px;">✅ Hero image ready</p>`;
+    DATA.settings.heroImage=r.result;
+  };
+  r.readAsDataURL(file);
+}
+
+/* ═══════════════════════════════════════════════════
+   HOMEPAGE SECTIONS
+═══════════════════════════════════════════════════ */
+function renderSections(){
+  document.getElementById('sectionToggles').innerHTML=DATA.sections.map(s=>`
+    <div class="section-block">
+      <div class="section-info">
+        <div class="section-name">${s.name}</div>
+        <div class="section-desc">${s.desc}</div>
+      </div>
+      <label class="toggle">
+        <input type="checkbox" id="sec-${s.id}" ${s.on?'checked':''} onchange="toggleSection('${s.id}',this.checked)"/>
+        <div class="toggle-track"></div>
+        <div class="toggle-thumb"></div>
+      </label>
+    </div>`).join('');
+}
+function toggleSection(id,val){
+  const s=DATA.sections.find(x=>x.id===id);
+  if(s) s.on=val;
+  console.log('[Section]',id,'→',val);
+}
+function saveSections(){
+  saveData();showToast('📋 Sections saved!');
+}
+function loadHomepageContent(){
+  const s=DATA.settings;
+  document.getElementById('hp-feat-title').value=s.featTitle||'';
+  document.getElementById('hp-feat-sub').value=s.featSub||'';
+  document.getElementById('hp-about-title').value=s.aboutTitle||'';
+  document.getElementById('hp-about-text').value=s.aboutText||'';
+  document.getElementById('hp-footer').value=s.footerText||'';
+}
+function saveHomepage(){
+  DATA.settings.featTitle=document.getElementById('hp-feat-title').value;
+  DATA.settings.featSub=document.getElementById('hp-feat-sub').value;
+  DATA.settings.aboutTitle=document.getElementById('hp-about-title').value;
+  DATA.settings.aboutText=document.getElementById('hp-about-text').value;
+  DATA.settings.footerText=document.getElementById('hp-footer').value;
+  saveData();showToast('🏠 Homepage content saved!');
+}
+
+/* ═══════════════════════════════════════════════════
+   GLOBAL SAVE
+═══════════════════════════════════════════════════ */
+function saveAll(){
+  // Flush any open form values
+  const page=document.querySelector('.page.active');
+  if(page&&page.id==='page-editor'){
+    const panel=document.querySelector('.editor-panel.active');
+    if(panel){
+      if(panel.id==='panel-branding') saveBranding();
+      if(panel.id==='panel-homepage'){ saveHomepage(); saveSections(); }
+    }
+    // always save color state
+    saveData();
+  }else{
+    saveData();
+  }
+  showToast('💾 All changes saved!');
+  console.log('[SaveAll] Complete');
+}
+
+/* ═══════════════════════════════════════════════════
+   TOAST
+═══════════════════════════════════════════════════ */
+let _toastTimer;
+function showToast(msg){
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer=setTimeout(()=>t.classList.remove('show'),3200);
+}
+
+/* ═══════════════════════════════════════════════════
+   HEADER STORE NAME
+═══════════════════════════════════════════════════ */
+function updateHeaderName(){
+  document.getElementById('headerStoreName').textContent=DATA.settings.websiteName||'Client Portal';
+}
+
+/* ═══════════════════════════════════════════════════
+   LOAD COLOR INPUTS FROM STORED STATE
+═══════════════════════════════════════════════════ */
+function loadColorInputs(){
+  const s=DATA.settings;
+  const pairs=[
+    ['primary',s.primaryColor],['secondary',s.secondaryColor],
+    ['bg',s.backgroundColor],['text',s.textColor],
+  ];
+  pairs.forEach(([k,v])=>{ if(v) setColorInput(k,v); });
+  if(s.borderRadius){
+    const rv=parseInt(s.borderRadius);
+    const sl=document.getElementById('radiusSlider'); if(sl) sl.value=rv;
+    const rv2=document.getElementById('radiusVal'); if(rv2) rv2.textContent=rv+'px';
+    document.documentElement.style.setProperty('--border-radius',s.borderRadius);
+  }
+  applyAllColors();
+}
+
+/* ═══════════════════════════════════════════════════
+   INIT
+═══════════════════════════════════════════════════ */
+function init(){
+  updateHeaderName();
+  renderDashboard();
+  renderPresets();
+  renderFontGrid();
+  loadColorInputs();
+  loadBranding();
+  renderSections();
+  loadHomepageContent();
+  updateThemePreview();
+  console.log('[Portal] Initialized ✓');
+}
+init();
+</script>
+</body>
+</html>
