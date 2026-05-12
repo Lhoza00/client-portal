@@ -956,12 +956,12 @@ const DEFAULTS = {
     footerText:"© 2025 My Store. All rights reserved.",
   },
   products:[
-    {id:1,title:"Air Max Sneakers",    price:1499,cost:700, stock:24,category:"Shoes",      sales:87, views:340,image:"👟", badge:"new"},
-    {id:2,title:"Leather Jacket",      price:2999,cost:1400,stock:5, category:"Clothing",   sales:43, views:210,image:"🧥", badge:"original"},
-    {id:3,title:"Wireless Headphones", price:899, cost:300, stock:2, category:"Electronics",sales:112,views:520,image:"🎧", badge:"hot-sale"},
-    {id:4,title:"Gold Watch",          price:4999,cost:2000,stock:8, category:"Accessories",sales:29, views:180,image:"⌚", badge:"new"},
-    {id:5,title:"Running Shorts",      price:349, cost:100, stock:0, category:"Clothing",   sales:65, views:95, image:"🩳", badge:"sale"},
-    {id:6,title:"Backpack Pro",        price:799, cost:280, stock:15,category:"Bags",       sales:54, views:230,image:"🎒", badge:"original"},
+    {id:1,title:"Air Max Sneakers",    price:1499,cost:700, stock:24,category:"Shoes",      sales:87, views:340,image:"👟"},
+    {id:2,title:"Leather Jacket",      price:2999,cost:1400,stock:5, category:"Clothing",   sales:43, views:210,image:"🧥"},
+    {id:3,title:"Wireless Headphones", price:899, cost:300, stock:2, category:"Electronics",sales:112,views:520,image:"🎧"},
+    {id:4,title:"Gold Watch",          price:4999,cost:2000,stock:8, category:"Accessories",sales:29, views:180,image:"⌚"},
+    {id:5,title:"Running Shorts",      price:349, cost:100, stock:0, category:"Clothing",   sales:65, views:95, image:"🩳"},
+    {id:6,title:"Backpack Pro",        price:799, cost:280, stock:15,category:"Bags",       sales:54, views:230,image:"🎒"},
   ],
   orders:[
     {id:"#001",product:"Air Max Sneakers",   customer:"Sipho M.",  status:"paid",   amount:1499},
@@ -1242,7 +1242,7 @@ function renderProductsTable(list){
 }
 
 function adjStock(id,d){
-  const p=DATA.products.find(x=>x.id==id);
+  const p=DATA.products.find(x=>x.id===id);
   if(!p)return;
   p.stock=Math.max(0,p.stock+d);
   saveData();filterProducts();
@@ -1251,9 +1251,7 @@ function adjStock(id,d){
 }
 
 /* ─── PRODUCT MODAL ──────────────────────────────── */
-const EMOJIS=["sale", "hot", "deal", "clearance", "new", "restock", "coming", "best-seller", 
-              "top-rated", "featured", "premium", "low-stock", "sold-out", "limited", "original",
-              "print", "handmade", "signed", "exclusive"];
+const EMOJIS=['👟','🧥','🎧','⌚','🩳','🎒','👗','👔','🕶','💼','👠','🧣','🧤','💍','📱','💻','🛍','🎸','☂','🏋'];
 
 function openAddProduct(){
   document.getElementById('modalHeading').textContent='Add Product';
@@ -1277,8 +1275,7 @@ function openEditProduct(id){
   document.getElementById('p-cost').value=p.cost;
   document.getElementById('p-stock').value=p.stock;
   document.getElementById('p-sales').value=p.sales;
-  document.getElementById('p-icon').value=p.badge;
-  document.getElementById('p-image').value=p.image;
+  document.getElementById('p-icon').value=p.image;
   document.getElementById('prodImgPreview').innerHTML='';
   renderEmojiPicker(p.image);
   document.getElementById('productModal').classList.add('open');
