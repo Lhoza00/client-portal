@@ -1242,7 +1242,7 @@ function renderProductsTable(list){
 }
 
 function adjStock(id,d){
-  const p=DATA.products.find(x=>x.id===id);
+  const p=DATA.products.find(x=>x.id==id);
   if(!p)return;
   p.stock=Math.max(0,p.stock+d);
   saveData();filterProducts();
